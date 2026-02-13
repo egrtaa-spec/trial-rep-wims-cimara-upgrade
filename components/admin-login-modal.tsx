@@ -21,6 +21,7 @@ export function AdminLoginModal({ open, onOpenChange }: { open: boolean; onOpenC
       const res = await fetch('/api/auth/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
 

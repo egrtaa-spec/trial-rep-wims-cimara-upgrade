@@ -34,7 +34,9 @@ export function EquipmentList() {
 
   const fetchEquipment = async () => {
     try {
-      const response = await fetch('/api/equipment');
+      const response = await fetch('/api/equipment', {
+        credentials: 'include',
+      });
       const data = await response.json();
       setEquipment(data);
     } catch (error) {

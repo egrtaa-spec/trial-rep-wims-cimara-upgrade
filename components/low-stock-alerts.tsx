@@ -24,7 +24,9 @@ export function LowStockAlerts() {
 
   const fetchLowStockItems = async () => {
     try {
-      const response = await fetch('/api/equipment');
+      const response = await fetch('/api/equipment', {
+        credentials: 'include',
+      });
       const equipment = await response.json();
       const lowStock = equipment.filter((e: Equipment) => e.quantity < 5);
       setLowStockItems(lowStock);

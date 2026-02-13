@@ -57,6 +57,7 @@ export function EquipmentForm({ onSuccess }: EquipmentFormProps) {
       const response = await fetch('/api/equipment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

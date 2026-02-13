@@ -56,7 +56,9 @@ export function WithdrawalHistory() {
 
   const fetchWithdrawals = async () => {
     try {
-      const response = await fetch('/api/withdrawals');
+      const response = await fetch('/api/withdrawals', {
+        credentials: 'include',
+      });
       const data = await response.json();
       setWithdrawals(data);
     } catch (error) {

@@ -42,7 +42,9 @@ export function ReportsView() {
 
   const fetchEngineers = async () => {
     try {
-      const response = await fetch('/api/engineers');
+      const response = await fetch('/api/engineers', {
+        credentials: 'include',
+      });
       const data = await response.json();
       setEngineers(data);
     } catch (error) {
@@ -67,6 +69,7 @@ export function ReportsView() {
         `/api/reports?type=${reportType}&siteName=${siteName}&startDate=${startDate}&endDate=${endDate}`,
         {
           method: 'GET',
+          credentials: 'include',
         }
       );
 

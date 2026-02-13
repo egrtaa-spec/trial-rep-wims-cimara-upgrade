@@ -30,6 +30,7 @@ export function LoginModal({ isOpen, onOpenChange }: LoginModalProps) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password, site }),
       });
 

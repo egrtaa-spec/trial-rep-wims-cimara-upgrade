@@ -10,7 +10,9 @@ export function EngineerList() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/engineers');
+        const res = await fetch('/api/engineers', {
+          credentials: 'include',
+        });
         const data = await res.json();
         setEngineers(Array.isArray(data) ? data : []);
       } finally {

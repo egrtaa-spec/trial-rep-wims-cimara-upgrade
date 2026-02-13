@@ -39,6 +39,7 @@ export function SiteEquipmentForm({ onSuccess }: { onSuccess?: () => void }) {
       const response = await fetch('/api/site/equipment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

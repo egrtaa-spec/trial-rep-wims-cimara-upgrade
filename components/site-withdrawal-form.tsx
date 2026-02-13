@@ -21,7 +21,9 @@ export function SiteWithdrawalForm({ onSuccess }: { onSuccess?: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch('/api/site/equipment');
+      const res = await fetch('/api/site/equipment', {
+        credentials: 'include',
+      });
       const data = await res.json().catch(() => []);
       setEquipment(Array.isArray(data) ? data : []);
     })();
@@ -60,6 +62,7 @@ export function SiteWithdrawalForm({ onSuccess }: { onSuccess?: () => void }) {
       const res = await fetch('/api/site/withdrawals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ withdrawalDate, description, items }),
       });
       const data = await res.json().catch(() => ({}));

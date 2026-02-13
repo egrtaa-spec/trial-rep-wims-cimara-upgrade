@@ -9,7 +9,9 @@ export function SiteEquipmentList() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch('/api/site/equipment');
+      const res = await fetch('/api/site/equipment', {
+        credentials: 'include',
+      });
       const data = await res.json().catch(() => []);
       setEquipment(Array.isArray(data) ? data : []);
       setLoading(false);
