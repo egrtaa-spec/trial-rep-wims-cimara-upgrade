@@ -45,20 +45,30 @@ export async function POST(req: Request) {
 
     const equipmentCollection = db.collection('equipment');
 
-    // 🔄 Atomic update: Increment if exists, create if new
-    await equipmentCollection.updateOne(
-      { name },
-      { 
-        $inc: { quantity: numQuantity },
-        $set: { ...body, quantity: numQuantity, updatedAt: new Date() },
-        $setOnInsert: { createdAt: new Date() } 
-      },
-      { upsert: true }
-    );
-
-    return NextResponse.json({ success: true });
+    // 🔄 Check if equipment exists
+    const existing = await equipmentCollection.findOne({ name });
+    
+    if (existing) {
+      // Update existing equipment
+      await equipmentCollection.updateOne(
+        { name },
+        { 
+          $set: { ...body, quantity: numQuantity, updatedAt: new Date() }
+        }
+      );
+      return NextResponse.json({ success: true, updated: true });
+    } else {
+      // Insert new equipment
+      await equipmentCollection.insertOne({
+        ...body,
+        quantity: numQuantity,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      return NextResponse.json({ success: true, updated: false });
+    }
   } catch (e: any) {
-    console.error("POST Error:", e.message);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error("POST Equipment Error:", e.message);
+    return NextResponse.json({ error: `Failed to register equipment: ${e.message}` }, { status: 500 });
   }
 }
