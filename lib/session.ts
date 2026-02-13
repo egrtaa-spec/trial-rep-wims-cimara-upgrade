@@ -12,7 +12,7 @@ export type Session = {
   site: SiteKey;
 };
 
-export const SESSION_COOKIE_NAME = "cimara_session";
+export const SESSION_COOKIE_NAME = "cimara_session"; // Must match across app
 
 /**
  * Get session safely from cookie
