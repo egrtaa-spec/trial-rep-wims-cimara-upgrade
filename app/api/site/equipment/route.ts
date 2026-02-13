@@ -24,14 +24,10 @@ export async function GET() {
 // ✅ Named export for POST (to add the equipment)
 export async function POST(req: Request) {
   try {
-    console.log("[v0] Equipment POST request received");
     const session = await getSession();
-    
-    console.log("[v0] Session retrieved:", session ? `User: ${session.username}` : "null");
     
     // 🔐 Role check
     if (!session || (session.role !== 'ADMIN' && session.role !== 'ENGINEER')) {
-      console.log("[v0] Authorization failed - returning 401");
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
 
@@ -72,7 +68,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, updated: false });
     }
   } catch (e: any) {
-    console.error("POST Equipment Error:", e.message);
     return NextResponse.json({ error: `Failed to register equipment: ${e.message}` }, { status: 500 });
   }
 }
