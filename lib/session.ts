@@ -19,20 +19,29 @@ export const SESSION_COOKIE_NAME = "cimara_session"; // Must match across app
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    const cookieStore = cookies();
-    const raw = (await cookieStore).get(SESSION_COOKIE_NAME)?.value;
+    const cookieStore = await cookies();
+    const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!raw) return null;
+    console.log("[v0] Session lookup - Cookie name:", SESSION_COOKIE_NAME);
+    console.log("[v0] Session lookup - Raw value:", raw ? "present" : "missing");
+
+    if (!raw) {
+      console.log("[v0] No session cookie found");
+      return null;
+    }
 
     const parsed = JSON.parse(raw) as Session;
 
     // Basic validation check
     if (!parsed.role || !parsed.username || !parsed.site) {
+      console.log("[v0] Session validation failed - missing fields");
       return null;
     }
 
+    console.log("[v0] Session validated - User:", parsed.username, "Role:", parsed.role);
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error("[v0] Session error:", err);
     return null;
   }
 }

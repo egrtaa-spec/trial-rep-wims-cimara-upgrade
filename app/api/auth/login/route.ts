@@ -29,6 +29,10 @@ export async function POST(req: Request) {
       site: site,
     });
 
+    console.log("[v0] Login successful for user:", user.username);
+    console.log("[v0] Setting session cookie:", SESSION_COOKIE_NAME);
+    console.log("[v0] Session data:", sessionData);
+
     const response = NextResponse.json({ success: true, message: "Login successful" });
     
     response.cookies.set({
@@ -40,9 +44,10 @@ export async function POST(req: Request) {
       maxAge: 60 * 60 * 24, // 1 day
     });
 
+    console.log("[v0] Cookie set, returning login response");
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[v0] Login error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
