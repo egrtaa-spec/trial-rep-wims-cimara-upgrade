@@ -14,22 +14,8 @@ export async function POST(req: Request) {
     const db = await getSiteDb(site);
     const users = db.collection("users");
 
-    // 1. Find user
-    let user = await users.findOne({ username });
-    
-    // Development mode: create test user if doesn't exist
-    if (!user && process.env.NODE_ENV !== 'production') {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await users.insertOne({
-        username,
-        password: hashedPassword,
-        role: "ENGINEER",
-        name: username,
-        site,
-        createdAt: new Date(),
-      });
-      user = await users.findOne({ username });
-    }
+    // Find user by username
+    const user = await users.findOne({ username });
     
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
@@ -62,7 +48,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error("[v0] Login error:", error);
-    return NextResponse.json({ error: "Server error", details: String(error) }, { status: 500 });
+    console.error("Login error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

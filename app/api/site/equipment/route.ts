@@ -21,8 +21,8 @@ export async function GET() {
     
     return NextResponse.json(equipment || []);
   } catch (e: any) {
-    console.error('[v0] Site equipment GET error:', e);
-    return NextResponse.json({ error: 'Failed to fetch equipment', details: e.message }, { status: 500 });
+    console.error('Site equipment GET error:', e);
+    return NextResponse.json({ error: 'Failed to fetch equipment' }, { status: 500 });
   }
 }
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, updated: false });
     }
   } catch (e: any) {
-    console.error('[v0] Site equipment POST error:', e);
-    return NextResponse.json({ error: 'Failed to register equipment', details: e.message }, { status: 500 });
+    console.error('Site equipment POST error:', e);
+    return NextResponse.json({ error: 'Failed to register equipment' }, { status: 500 });
   }
 }

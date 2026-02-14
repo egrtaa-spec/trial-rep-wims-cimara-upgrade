@@ -16,21 +16,16 @@ export async function getSiteDb(site: string) {
   const normalizedSite = site.toUpperCase().replace(/'/g, '');
   
   const map: Record<string, string | undefined> = {
-    ENAM: process.env.MONGODB_SITE_ENAM,
-    MINFOPRA: process.env.MONGODB_SITE_MINFOPRA,
-    SUPPTIC: process.env.MONGODB_SITE_SUPPTIC,
-    ISMP: process.env.MONGODB_SITE_ISMP,
+    ENAM: process.env.DB_ENAM,
+    MINFOPRA: process.env.DB_MINFOPRA,
+    SUPPTIC: process.env.DB_SUPPTIC,
+    ISMP: process.env.DB_ISMP,
   };
 
-  let dbName = map[normalizedSite];
+  const dbName = map[normalizedSite];
   
-  // Development fallback - use default names if env vars not set
   if (!dbName) {
-    if (process.env.NODE_ENV !== 'production') {
-      dbName = `cimara_${normalizedSite.toLowerCase()}`;
-    } else {
-      throw new Error(`Invalid site mapping for: ${site}. Configure MONGODB_SITE_* env vars`);
-    }
+    throw new Error(`Invalid site mapping for: ${site}. Configure DB_* env vars`);
   }
   
   return c.db(dbName);
