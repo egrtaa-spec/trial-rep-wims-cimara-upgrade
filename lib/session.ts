@@ -22,17 +22,25 @@ export async function getSession(): Promise<Session | null> {
     const cookieStore = await cookies();
     const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!raw) return null;
+    console.log('[v0] getSession - cookie found:', !!raw, 'cookie name:', SESSION_COOKIE_NAME);
+
+    if (!raw) {
+      console.log('[v0] getSession - No session cookie found');
+      return null;
+    }
 
     const parsed = JSON.parse(raw) as Session;
 
     // Basic validation check
     if (!parsed.role || !parsed.username || !parsed.site) {
+      console.log('[v0] getSession - Session validation failed');
       return null;
     }
 
+    console.log('[v0] getSession - Session valid for user:', parsed.username, 'site:', parsed.site);
     return parsed;
   } catch (err) {
+    console.error('[v0] getSession error:', err);
     return null;
   }
 }

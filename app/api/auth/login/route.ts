@@ -7,6 +7,8 @@ export async function POST(req: Request) {
   try {
     const { site, username, password } = await req.json();
     
+    console.log('[v0] Login attempt - site:', site, 'username:', username);
+    
     if (!site || !username || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
@@ -18,12 +20,14 @@ export async function POST(req: Request) {
     const user = await users.findOne({ username });
     
     if (!user) {
+      console.log('[v0] User not found:', username);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     // 2. Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      console.log('[v0] Invalid password for user:', username);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
@@ -34,6 +38,8 @@ export async function POST(req: Request) {
       username: user.username,
       site: site,
     });
+
+    console.log('[v0] Setting session cookie for user:', username, 'with data:', sessionData);
 
     const response = NextResponse.json({ success: true, message: "Login successful" });
     
@@ -46,9 +52,10 @@ export async function POST(req: Request) {
       maxAge: 60 * 60 * 24, // 1 day
     });
 
+    console.log('[v0] Login successful for user:', username);
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[v0] Login error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

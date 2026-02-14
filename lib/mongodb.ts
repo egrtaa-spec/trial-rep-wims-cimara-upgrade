@@ -24,6 +24,8 @@ export async function getSiteDb(site: string) {
 
   const dbName = map[normalizedSite];
   
+  console.log('[v0] getSiteDb - site:', site, 'normalized:', normalizedSite, 'dbName:', dbName, 'envVars:', { ENAM: !!process.env.DB_ENAM, MINFOPRA: !!process.env.DB_MINFOPRA, SUPPTIC: !!process.env.DB_SUPPTIC, ISMP: !!process.env.DB_ISMP });
+  
   if (!dbName) {
     throw new Error(`Invalid site mapping for: ${site}. Configure DB_* env vars`);
   }

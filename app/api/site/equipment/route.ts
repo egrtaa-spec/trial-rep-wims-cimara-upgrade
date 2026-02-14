@@ -29,17 +29,23 @@ export async function GET() {
 // ✅ Named export for POST (to add the equipment)
 export async function POST(req: Request) {
   try {
+    console.log('[v0] Equipment POST - Getting session...');
     const session = await getSession();
     
+    console.log('[v0] Equipment POST - Session:', session ? `User ${session.username}` : 'null');
+    
     if (!session) {
+      console.log('[v0] Equipment POST - No session, returning 401');
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
     
     if (session.role !== 'ADMIN' && session.role !== 'ENGINEER') {
+      console.log('[v0] Equipment POST - Invalid role:', session.role);
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
     }
 
     const siteKey = session.site || 'ENAM';
+    console.log('[v0] Equipment POST - Getting DB for site:', siteKey);
     const db = await getSiteDb(siteKey);
     
     const body = await req.json();
