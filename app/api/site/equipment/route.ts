@@ -6,18 +6,23 @@ import { getSiteDb } from '@/lib/mongodb';
 export async function GET() {
   try {
     const session = await getSession();
-    // Use UPPERCASE to match your session types
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'ENGINEER')) {
+    
+    if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
+    
+    if (session.role !== 'ADMIN' && session.role !== 'ENGINEER') {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    }
 
-    const siteKey = (session as any).site || 'ENAM';
+    const siteKey = session.site || 'ENAM';
     const db = await getSiteDb(siteKey);
     const equipment = await db.collection('equipment').find({}).sort({ createdAt: -1 }).toArray();
     
-    return NextResponse.json(equipment);
+    return NextResponse.json(equipment || []);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    console.error('[v0] Site equipment GET error:', e);
+    return NextResponse.json({ error: 'Failed to fetch equipment', details: e.message }, { status: 500 });
   }
 }
 
@@ -26,30 +31,29 @@ export async function POST(req: Request) {
   try {
     const session = await getSession();
     
-    // 🔐 Role check
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'ENGINEER')) {
+    if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
     }
+    
+    if (session.role !== 'ADMIN' && session.role !== 'ENGINEER') {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
+    }
 
-    const siteKey = (session as any).site || 'ENAM';
-    const db = await getSiteDb(siteKey); // ✅ Connect to specific site DB
+    const siteKey = session.site || 'ENAM';
+    const db = await getSiteDb(siteKey);
     
     const body = await req.json();
     const { name, quantity } = body;
 
-    // 🔢 Ensure quantity is a number to prevent MongoDB math errors
     const numQuantity = Number(quantity);
     if (!name || isNaN(numQuantity)) {
       return NextResponse.json({ error: 'Invalid name or quantity' }, { status: 400 });
     }
 
     const equipmentCollection = db.collection('equipment');
-
-    // 🔄 Check if equipment exists
     const existing = await equipmentCollection.findOne({ name });
     
     if (existing) {
-      // Update existing equipment
       await equipmentCollection.updateOne(
         { name },
         { 
@@ -58,7 +62,6 @@ export async function POST(req: Request) {
       );
       return NextResponse.json({ success: true, updated: true });
     } else {
-      // Insert new equipment
       await equipmentCollection.insertOne({
         ...body,
         quantity: numQuantity,
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, updated: false });
     }
   } catch (e: any) {
-    return NextResponse.json({ error: `Failed to register equipment: ${e.message}` }, { status: 500 });
+    console.error('[v0] Site equipment POST error:', e);
+    return NextResponse.json({ error: 'Failed to register equipment', details: e.message }, { status: 500 });
   }
 }

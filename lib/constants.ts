@@ -2,7 +2,7 @@
 export const CIMARA_SITES = [
   'ENAM',
   'MINFOPRA',
-  'SUP\'PTIC',
+  'SUPPTIC',
   'ISMP',
 ] as const;
 

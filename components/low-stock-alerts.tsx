@@ -27,11 +27,19 @@ export function LowStockAlerts() {
       const response = await fetch('/api/equipment', {
         credentials: 'include',
       });
-      const equipment = await response.json();
-      const lowStock = equipment.filter((e: Equipment) => e.quantity < 5);
+      const data = await response.json();
+      
+      if (!response.ok || !Array.isArray(data)) {
+        console.error('Invalid response from equipment API:', data);
+        setLowStockItems([]);
+        return;
+      }
+      
+      const lowStock = data.filter((e: Equipment) => e.quantity < 5);
       setLowStockItems(lowStock);
     } catch (error) {
       console.error('Error fetching low stock items:', error);
+      setLowStockItems([]);
     } finally {
       setLoading(false);
     }

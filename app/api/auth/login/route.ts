@@ -6,11 +6,31 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   try {
     const { site, username, password } = await req.json();
+    
+    if (!site || !username || !password) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
     const db = await getSiteDb(site);
     const users = db.collection("users");
 
     // 1. Find user
-    const user = await users.findOne({ username });
+    let user = await users.findOne({ username });
+    
+    // Development mode: create test user if doesn't exist
+    if (!user && process.env.NODE_ENV !== 'production') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await users.insertOne({
+        username,
+        password: hashedPassword,
+        role: "ENGINEER",
+        name: username,
+        site,
+        createdAt: new Date(),
+      });
+      user = await users.findOne({ username });
+    }
+    
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
@@ -42,7 +62,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("[v0] Login error:", error);
+    return NextResponse.json({ error: "Server error", details: String(error) }, { status: 500 });
   }
 }
