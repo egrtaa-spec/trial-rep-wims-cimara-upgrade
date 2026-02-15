@@ -39,11 +39,16 @@ export function SiteEquipmentForm({ onSuccess }: { onSuccess?: () => void }) {
       const response = await fetch('/api/site/equipment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Failed');
+      
+      if (!response.ok) {
+        const errorMessage = data.error || 'Failed to register equipment';
+        throw new Error(errorMessage);
+      }
 
       toast({
         title: 'Success',
@@ -52,8 +57,16 @@ export function SiteEquipmentForm({ onSuccess }: { onSuccess?: () => void }) {
 
       setFormData({ ...formData, name: '', serialNumber: '', quantity: 0 });
       onSuccess?.();
-    } catch {
-      toast({ title: 'Error', description: 'Failed to add equipment', variant: 'destructive' });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to register equipment';
+      
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      
+      console.error('[v0] Equipment registration error:', errorMessage);
     } finally {
       setLoading(false);
     }

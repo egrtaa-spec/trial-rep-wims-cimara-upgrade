@@ -33,8 +33,7 @@ export default function DashboardPage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <DashboardStats />
-            <LowStockAlerts />
+           <DashboardStats refreshKey={refreshKey} />
           </TabsContent>
 
           <TabsContent value="engineers" className="space-y-6">

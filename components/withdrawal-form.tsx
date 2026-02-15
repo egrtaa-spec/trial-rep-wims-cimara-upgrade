@@ -72,7 +72,9 @@ export function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
 
   const fetchEngineers = async () => {
     try {
-      const response = await fetch('/api/engineers');
+      const response = await fetch('/api/engineers', {
+        credentials: 'include',
+      });
       const data = await response.json();
       setEngineers(data);
     } catch (error) {
@@ -82,7 +84,9 @@ export function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
 
   const fetchEquipment = async () => {
     try {
-      const response = await fetch('/api/equipment');
+      const response = await fetch('/api/equipment', {
+        credentials: 'include',
+      });
       const data = await response.json();
       setEquipment(data);
     } catch (error) {
@@ -168,6 +172,7 @@ export function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
       const response = await fetch('/api/withdrawals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           ...formData,
           items,

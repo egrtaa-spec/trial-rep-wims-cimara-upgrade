@@ -1,15 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SESSION_COOKIE_NAME } from '@/lib/session';
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+// ✅ FIX: Define this here to stop the import error
+export type SiteKey = "ENAM" | "MINFOPRA" | "SUPPTIC" | "ISMP";
+
+export type Session = {
+  role: "ENGINEER" | "ADMIN";
+  name: string;
+  username: string;
+  site: SiteKey;
+};
+
+export const SESSION_COOKIE_NAME = "cimara_session";
+
+export async function GET() {
   try {
-    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (!sessionCookie) return NextResponse.json({ user: null });
+    const cookieStore = await cookies();
+    const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    const sessionData = JSON.parse(sessionCookie);
-    return NextResponse.json({ user: sessionData });
-  } catch (error) {
-    console.error('Session check error:', error);
-    return NextResponse.json({ user: null });
+    if (!raw) return NextResponse.json({ user: null }, { status: 200 });
+
+    const user = JSON.parse(raw);
+    return NextResponse.json({ user }, { status: 200 });
+  } catch (err) {
+    return NextResponse.json({ user: null }, { status: 500 });
   }
 }

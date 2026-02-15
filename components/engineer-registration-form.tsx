@@ -48,6 +48,7 @@ export function EngineerRegistrationForm({ onSuccess }: EngineerFormProps) {
       const response = await fetch('/api/engineers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 

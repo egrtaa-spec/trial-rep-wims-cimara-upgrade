@@ -44,9 +44,9 @@ export function DashboardStats({ refreshKey }: DashboardStatsProps) {
       setLoading(true);
 
       const [engResponse, equipResponse, withResponse] = await Promise.all([
-        fetch('/api/engineers'),
-        fetch('/api/equipment'),
-        fetch('/api/withdrawals'),
+        fetch('/api/site/engineers', { credentials: 'include' }),
+        fetch('/api/site/equipment', { credentials: 'include' }),
+        fetch('/api/site/withdrawals', { credentials: 'include' }),
       ]);
 
       const engineers = await fetchSafeJson(engResponse);

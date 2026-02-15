@@ -22,13 +22,15 @@ export function useAuth() {
 
   const checkSession = async () => {
     try {
-      console.log('Checking session...');
-      const response = await fetch('/api/auth/session');
+      console.log('[v0] Checking session...');
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include',
+      });
       const data = await response.json();
-      console.log('Session check result:', data);
+      console.log('[v0] Session check result:', data);
       setUser(data.user || null);
     } catch (err) {
-      console.error('Session check error:', err);
+      console.error('[v0] Session check error:', err);
       setError('Failed to check session');
       setUser(null);
     } finally {
