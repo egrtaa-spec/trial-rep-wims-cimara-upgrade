@@ -1,63 +1,92 @@
-import { NextResponse } from 'next/server';
-import { getWarehouseDb } from '@/lib/mongodb';
-import { getSession } from '@/lib/session';
-
-function groupDaily(withdrawals: any[], siteName: string, date: string) {
-  const daily = withdrawals.filter(w => w.siteName === siteName && w.withdrawalDate === date);
-  const equipmentUsedMap = new Map<string, any>();
-
-  for (const w of daily) {
-    for (const item of w.items || []) {
-      const key = item.equipmentName;
-      const existing = equipmentUsedMap.get(key) || { equipmentName: key, quantityWithdrawn: 0, unit: item.unit };
-      existing.quantityWithdrawn += Number(item.quantityWithdrawn);
-      equipmentUsedMap.set(key, existing);
-    }
-  }
-
-  return {
-    reportDate: date,
-    siteName,
-    totalWithdrawals: daily.length,
-    equipmentUsed: Array.from(equipmentUsedMap.values()),
-  };
-}
+import { NextResponse } from "next/server";
+// @ts-expect-error: Ensure clientPromise is exported from the module
+import { clientPromise } from "@/lib/mongodb";
 
 export async function GET(req: Request) {
   try {
-    const session = getSession();
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get('type') || 'daily';
-    const siteName = searchParams.get('siteName') || '';
-    const startDate = searchParams.get('startDate') || '';
-    const endDate = searchParams.get('endDate') || startDate;
 
-    const db = await getWarehouseDb();
-    const q: any = {};
-    if (startDate && endDate) q.withdrawalDate = { $gte: startDate, $lte: endDate };
-    if (siteName) q.siteName = siteName;
+    const type = searchParams.get("type"); // daily | weekly
+    const siteName = searchParams.get("siteName");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
-    const withdrawals = await db.collection('withdrawals').find(q).toArray();
-
-    if (type === 'daily') {
-      if (!startDate || !siteName) return NextResponse.json([]);
-      return NextResponse.json([groupDaily(withdrawals, siteName, startDate)]);
+    if (!type || !siteName || !startDate) {
+      return NextResponse.json(
+        { error: "Missing parameters" },
+        { status: 400 }
+      );
     }
 
-    const total = withdrawals.length;
-    return NextResponse.json([
-      {
-        weekStartDate: startDate,
-        weekEndDate: endDate,
-        siteName,
-        totalWithdrawals: total,
-        equipmentUsed: [],
-      },
-    ]);
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Error' }, { status: 500 });
+    const client = await clientPromise;
+    const db = client.db(process.env.MONGODB_DB);
+
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : new Date(startDate);
+    end.setHours(23, 59, 59, 999);
+
+    const withdrawals = await db.collection("withdrawals").find({
+      siteName,
+      createdAt: { $gte: start, $lte: end }
+    }).toArray();
+
+    if (type === "daily") {
+      const totalWithdrawals = withdrawals.reduce(
+        (sum: any, w: any) => sum + w.quantity,
+        0
+      );
+
+      const equipmentMap: any = {};
+
+      withdrawals.forEach((w: any) => {
+        if (!equipmentMap[w.equipmentName]) {
+          equipmentMap[w.equipmentName] = {
+            equipmentName: w.equipmentName,
+            quantityWithdrawn: 0,
+            unit: w.unit || "",
+            engineers: []
+          };
+        }
+
+        equipmentMap[w.equipmentName].quantityWithdrawn += w.quantity;
+
+        if (!equipmentMap[w.equipmentName].engineers.includes(w.engineer)) {
+          equipmentMap[w.equipmentName].engineers.push(w.engineer);
+        }
+      });
+
+      return NextResponse.json([
+        {
+          reportDate: start,
+          siteName,
+          totalWithdrawals,
+          equipmentUsed: Object.values(equipmentMap)
+        }
+      ]);
+    }
+
+    if (type === "weekly") {
+      const totalWithdrawals = withdrawals.reduce(
+        (sum: any, w: any) => sum + w.quantity,
+        0
+      );
+
+      return NextResponse.json([
+        {
+          weekStartDate: start,
+          weekEndDate: end,
+          siteName,
+          totalWithdrawals
+        }
+      ]);
+    }
+
+    return NextResponse.json([]);
+  } catch (error) {
+    console.error("Reports error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate report" },
+      { status: 500 }
+    );
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSiteDb } from "@/lib/mongodb";
+import { getDb } from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { SESSION_COOKIE_NAME, Session } from "@/lib/session";
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const db = await getSiteDb(site);
+    const db = await getDb(site);
     const users = db.collection("users");
 
     const existingUser = await users.findOne({ username });

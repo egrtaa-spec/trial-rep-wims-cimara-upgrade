@@ -9,7 +9,7 @@ import { AdminEquipmentForm } from '@/components/admin-equipment-form';
 import { AdminEquipmentList } from '@/components/admin-equipment-list';
 import { AdminWarehouseWithdrawalForm } from '@/components/admin-warehouse-withdrawal-form';
 import { AdminWithdrawalHistory } from '@/components/admin-withdrawal-history';
-import { AdminReportsView } from '@/components/admin-reports-view';
+import { AdminReportsView } from '@/components/admin-reports-review';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';

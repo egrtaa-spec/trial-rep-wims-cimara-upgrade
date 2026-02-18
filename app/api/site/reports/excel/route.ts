@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireEngineer } from '@/lib/session';
-import { getSiteDb } from '@/lib/mongodb';
+import { getDb } from '@/lib/mongodb';
 import * as XLSX from 'xlsx';
 
 export async function GET() {
   try {
     const engineer = requireEngineer();
-    const db = await getSiteDb(engineer.site);
+    const db = await getDb((await engineer).site);
 
     const equipment = await db.collection('equipment').find({}).toArray();
     const withdrawals = await db.collection('withdrawals').find({}).sort({ createdAt: -1 }).toArray();
@@ -37,7 +37,7 @@ export async function GET() {
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${engineer.site}-site-report.xlsx"`,
+        'Content-Disposition': `attachment; filename="${(await engineer).site}-site-report.xlsx"`,
       }
     });
   } catch (e: any) {

@@ -1,23 +1,23 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+const SESSION_COOKIE_NAME = "cimara_session";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ✅ Public routes
+  // Allow public routes
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
-    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon.ico") ||
     pathname === "/"
   ) {
     return NextResponse.next();
   }
 
-  // ✅ Read cookie from request (THIS is correct for proxy)
-  const session = request.cookies.get("session")?.value;
+  const session = request.cookies.get("cimara_session");
 
   if (!session) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -27,5 +27,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

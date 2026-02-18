@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -12,10 +13,12 @@ interface Stats {
 }
 
 interface DashboardStatsProps {
-  refreshKey?: number; // 👈 allows parent to trigger refresh
+  refreshKey?: number;
 }
 
 export function DashboardStats({ refreshKey }: DashboardStatsProps) {
+  const router = useRouter();
+
   const [stats, setStats] = useState<Stats>({
     totalEngineers: 0,
     totalEquipment: 0,
@@ -25,47 +28,60 @@ export function DashboardStats({ refreshKey }: DashboardStatsProps) {
 
   const [loading, setLoading] = useState(true);
 
-  // ✅ Safe JSON parser (prevents "<!DOCTYPE" crash)
-  const fetchSafeJson = async (response: Response) => {
-    if (!response.ok) return [];
+  /**
+   * Safe JSON fetcher
+   * - Prevents "<!DOCTYPE" crash
+   * - Handles 401 properly
+   */
+  const fetchJsonSafe = async (url: string, p0: { catch: string; }) => {
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
 
-    const contentType = response.headers.get('content-type');
+      // 🚨 If unauthorized → redirect to login
+      if (response.status === 401) {
+        router.replace('/login');
+        return [];
+      }
 
-    if (!contentType || !contentType.includes('application/json')) {
-      console.warn('Non-JSON response received');
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok || !contentType?.includes('application/json')) {
+        return [];
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`Failed to fetch ${url}:`, error);
       return [];
     }
-
-    return response.json();
   };
 
   const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const [engResponse, equipResponse, withResponse] = await Promise.all([
-        fetch('/api/site/engineers', { credentials: 'include' }),
-        fetch('/api/site/equipment', { credentials: 'include' }),
-        fetch('/api/site/withdrawals', { credentials: 'include' }),
+    try {
+      const [engineers, equipment, withdrawals] = await Promise.all([
+        fetchJsonSafe('/api/site/engineers', {catch: 'no-store'}),
+        fetchJsonSafe('/api/site/equipment', {catch: 'no-store'}),
+        fetchJsonSafe('/api/site/withdrawals', {catch: 'no-store'}),
       ]);
 
-      const engineers = await fetchSafeJson(engResponse);
-      const equipment = await fetchSafeJson(equipResponse);
-      const withdrawals = await fetchSafeJson(withResponse);
+      const safeEngineers = Array.isArray(engineers) ? engineers : [];
+      const safeEquipment = Array.isArray(equipment) ? equipment : [];
+      const safeWithdrawals = Array.isArray(withdrawals) ? withdrawals : [];
 
-      const lowStockItems = Array.isArray(equipment)
-        ? equipment.filter((e: any) => e.quantity < 5).length
-        : 0;
+      const lowStockItems = safeEquipment.filter(
+        (item: any) => Number(item.quantity) < 5
+      ).length;
 
       setStats({
-        totalEngineers: Array.isArray(engineers) ? engineers.length : 0,
-        totalEquipment: Array.isArray(equipment) ? equipment.length : 0,
-        totalWithdrawals: Array.isArray(withdrawals) ? withdrawals.length : 0,
+        totalEngineers: safeEngineers.length,
+        totalEquipment: safeEquipment.length,
+        totalWithdrawals: safeWithdrawals.length,
         lowStockItems,
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
-
+      console.error('Stats fetch failed:', error);
       setStats({
         totalEngineers: 0,
         totalEquipment: 0,
@@ -75,22 +91,22 @@ export function DashboardStats({ refreshKey }: DashboardStatsProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
-  // ✅ Runs on first load AND whenever refreshKey changes
+  // Runs on mount and refreshKey change
   useEffect(() => {
     fetchStats();
   }, [fetchStats, refreshKey]);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-8">
+      <div className="flex justify-center py-10">
         <Spinner />
       </div>
     );
   }
 
-  const statCards = [
+  const cards = [
     {
       title: 'Total Engineers',
       value: stats.totalEngineers,
@@ -118,18 +134,20 @@ export function DashboardStats({ refreshKey }: DashboardStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {statCards.map((stat, idx) => (
-        <Card key={idx} className="overflow-hidden">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {cards.map((card) => (
+        <Card key={card.title} className="shadow-sm hover:shadow-md transition">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-              {stat.title}
-              <span className="text-2xl">{stat.icon}</span>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+              {card.title}
+              <span className="text-2xl">{card.icon}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`inline-block px-4 py-2 rounded-lg ${stat.color}`}>
-              <div className="text-4xl font-bold">{stat.value}</div>
+            <div
+              className={`inline-block px-4 py-2 rounded-lg ${card.color}`}
+            >
+              <div className="text-4xl font-bold">{card.value}</div>
             </div>
           </CardContent>
         </Card>

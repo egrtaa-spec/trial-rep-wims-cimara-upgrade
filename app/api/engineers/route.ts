@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSiteDb } from '@/lib/mongodb'; // Using the dynamic helper
+import { getDb } from '@/lib/mongodb'; // Using the dynamic helper
 import { getSession } from '@/lib/session';
 import { isValidSite } from '@/lib/sites';
 
@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: `Database configuration missing for site: ${(session as any).site}` }, { status: 500 });
     }
 
-    const db = await getSiteDb(dbName);
+    const db = await getDb(dbName);
     
     // Fetch engineers for this specific site
     const engineers = await db.collection('engineers')
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Target database for ${siteName} not configured` }, { status: 500 });
     }
 
-    const db = await getSiteDb(targetDbName);
+    const db = await getDb(targetDbName);
 
     // Check if username is already taken in THAT site's database
     const exists = await db.collection('engineers').findOne({ 

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getSiteDb } from '@/lib/mongodb';
+import { getDb } from '@/lib/mongodb';
 import { requireEngineer } from '@/lib/session';
 import { ObjectId } from 'mongodb';
 
 export async function GET(req: Request) {
   try {
     const engineer = requireEngineer();
-    const db = await getSiteDb(engineer.site);
+    const db = await getDb((await engineer).site);
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const engineer = requireEngineer();
-    const db = await getSiteDb(engineer.site);
+    const db = await getDb((await engineer).site);
     const body = await req.json();
 
     const { withdrawalDate, description, notes, items } = body;
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const result = await db.collection('withdrawals').insertOne({
       withdrawalDate,
-      engineerName: engineer.name,
+      engineerName: (await engineer).name,
       description: description || '',
       notes: notes || '',
       items: items.map((i: any) => ({

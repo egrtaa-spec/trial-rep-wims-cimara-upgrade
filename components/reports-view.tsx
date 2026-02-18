@@ -27,7 +27,7 @@ interface Engineer {
 
 export function ReportsView() {
   const [reportType, setReportType] = useState<'daily' | 'weekly'>('daily');
-  const [siteName, setSiteName] = useState(CIMARA_SITES[0]);
+  const [siteName, setSiteName] = useState<(typeof CIMARA_SITES)[number]>(CIMARA_SITES[0]);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [engineers, setEngineers] = useState<Engineer[]>([]);
@@ -286,7 +286,7 @@ export function ReportsView() {
 
             <div className="space-y-2">
               <Label htmlFor="site">Select Site</Label>
-              <Select value={siteName} onValueChange={setSiteName}>
+              <Select value={siteName} onValueChange={(value) => setSiteName(value as typeof CIMARA_SITES[number])}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select site..." />
                 </SelectTrigger>
